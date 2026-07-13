@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS Agent Command Center</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+<div class="background-grid"></div>
+<div class="scanner"></div>
+
+<header class="topbar">
+    <div>
+        <p class="eyebrow">AUTONOMOUS DEVOPS INTELLIGENCE SYSTEM</p>
+        <h1>J.A.R.V.I.S</h1>
+        <p class="subtitle">Multi-Agent Command Center</p>
+    </div>
+
+    <div class="top-status">
+        <span class="pulse-dot"></span>
+        <span id="global-status">SYSTEM ONLINE</span>
+    </div>
+</header>
+
+<section class="agent-strip">
+    <article class="agent-card active">
+        <span class="agent-number">01</span>
+        <h3>WATCHER</h3>
+        <p>System Monitor</p>
+        <span class="agent-state">ONLINE</span>
+    </article>
+
+    <article class="agent-card active">
+        <span class="agent-number">02</span>
+        <h3>DOCKER</h3>
+        <p>Container Control</p>
+        <span id="docker-agent-state" class="agent-state">CHECKING</span>
+    </article>
+
+    <article class="agent-card active">
+        <span class="agent-number">03</span>
+        <h3>SENTINEL</h3>
+        <p>Scope Protection</p>
+        <span class="agent-state">ARMED</span>
+    </article>
+
+    <article class="agent-card active">
+        <span class="agent-number">04</span>
+        <h3>SCOUT</h3>
+        <p>Passive Recon</p>
+        <span class="agent-state">READY</span>
+    </article>
+
+    <article class="agent-card planned">
+        <span class="agent-number">05</span>
+        <h3>FORGE</h3>
+        <p>CI/CD Automation</p>
+        <span class="agent-state">PLANNED</span>
+    </article>
+
+    <article class="agent-card planned">
+        <span class="agent-number">06</span>
+        <h3>ATLAS</h3>
+        <p>Cloud Operations</p>
+        <span class="agent-state">PLANNED</span>
+    </article>
+</section>
+
+<main class="dashboard">
+
+    <aside class="side-panel">
+        <div class="panel-heading">
+            <span>LIVE SYSTEM</span>
+            <small>WATCHER AGENT</small>
+        </div>
+
+        <div class="metric">
+            <div class="metric-title">
+                <span>CPU</span>
+                <strong id="cpu-value">0%</strong>
+            </div>
+            <div class="bar">
+                <div id="cpu-bar" class="bar-fill"></div>
+            </div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-title">
+                <span>MEMORY</span>
+                <strong id="memory-value">0%</strong>
+            </div>
+            <div class="bar">
+                <div id="memory-bar" class="bar-fill"></div>
+            </div>
+            <p id="memory-detail">Loading memory...</p>
+        </div>
+
+        <div class="metric">
+            <div class="metric-title">
+                <span>DISK</span>
+                <strong id="disk-value">0%</strong>
+            </div>
+            <div class="bar">
+                <div id="disk-bar" class="bar-fill"></div>
+            </div>
+            <p id="disk-detail">Loading storage...</p>
+        </div>
+
+        <div class="mini-information">
+            <span>HOSTNAME</span>
+            <strong id="hostname">CONNECTING</strong>
+        </div>
+
+        <div class="mini-information">
+            <span>LOCAL TIME</span>
+            <strong id="clock">--:--:--</strong>
+        </div>
+    </aside>
+
+    <section class="core-section">
+        <div class="core-label top-label">PRIME ORCHESTRATOR</div>
+
+        <div class="jarvis-core">
+            <div class="ring ring-1">
+                <div class="ring ring-2">
+                    <div class="ring ring-3">
+                        <div class="core-ball">
+                            <span>J</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>JARVIS IS LISTENING</h2>
+        <p class="core-message" id="core-message">
+            All operational agents connected
+        </p>
+
+        <div class="command-box">
+            <input
+                id="command-input"
+                type="text"
+                placeholder="Enter command: system, docker, scope, help"
+                autocomplete="off"
+            >
+
+            <button onclick="runCommand()">EXECUTE</button>
+        </div>
+
+        <div class="quick-actions">
+            <button onclick="executeSystemCommand()">SYSTEM SCAN</button>
+            <button onclick="executeDockerCommand()">DOCKER SCAN</button>
+            <button onclick="executeScopeCommand()">VIEW SCOPE</button>
+        </div>
+    </section>
+
+    <aside class="side-panel security-panel">
+        <div class="panel-heading">
+            <span>SECURITY RESEARCH</span>
+            <small>SCOUT + SENTINEL</small>
+        </div>
+
+        <div class="scope-status">
+            <span>PROGRAM</span>
+            <strong id="program-name">Loading...</strong>
+        </div>
+
+        <div class="scope-status">
+            <span>ALLOWED TARGETS</span>
+            <strong id="scope-count">0</strong>
+        </div>
+
+        <label for="security-target">Authorised target</label>
+
+        <input
+            id="security-target"
+            class="target-input"
+            type="text"
+            placeholder="https://in-scope-domain.com"
+        >
+
+        <button class="recon-button" onclick="runPassiveRecon()">
+            RUN PASSIVE RECON
+        </button>
+
+        <p class="safety-notice">
+            Scope Guard blocks targets that are not listed in
+            config/scope.json.
+        </p>
+
+        <div id="recon-summary" class="recon-summary">
+            Awaiting authorised target.
+        </div>
+    </aside>
+
+</main>
+
+<section class="lower-grid">
+
+    <div class="containers-panel">
+        <div class="panel-heading horizontal">
+            <div>
+                <span>CONTAINER INFRASTRUCTURE</span>
+                <small>DOCKER AGENT</small>
+            </div>
+
+            <button onclick="loadContainers()">REFRESH</button>
+        </div>
+
+        <div class="container-total">
+            <strong id="container-count">0</strong>
+            <span>CONTAINERS DETECTED</span>
+        </div>
+
+        <div id="container-list" class="container-list">
+            <p class="empty">Scanning Docker environment...</p>
+        </div>
+    </div>
+
+    <div class="terminal-panel">
+        <div class="terminal-header">
+            <div class="terminal-lights">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <p>JARVIS OPERATION LOG</p>
+
+            <button onclick="clearLog()">CLEAR</button>
+        </div>
+
+        <div id="system-log" class="terminal-body">
+            <p>&gt; JARVIS command centre initialising...</p>
+            <p>&gt; Loading operational agents...</p>
+        </div>
+    </div>
+
+</section>
+
+
+<section class="logs-workspace">
+    <div class="panel-heading horizontal">
+        <div>
+            <span>LIVE CONTAINER LOGS</span>
+            <small>DOCKER LOG AGENT</small>
+        </div>
+
+        <div class="logs-controls">
+            <select id="log-container-select">
+                <option value="">Loading containers...</option>
+            </select>
+
+            <input
+                id="log-tail"
+                type="number"
+                min="1"
+                max="500"
+                value="50"
+                title="Number of recent log lines"
+            >
+
+            <button onclick="loadSelectedContainerLogs()">
+                LOAD LOGS
+            </button>
+
+            <label class="auto-refresh-control">
+                <input id="log-auto-refresh" type="checkbox">
+                AUTO
+            </label>
+
+            <div class="container-action-buttons">
+                <button
+                    class="start-action"
+                    onclick="requestContainerAction('start')"
+                >
+                    START
+                </button>
+
+                <button
+                    class="restart-action"
+                    onclick="requestContainerAction('restart')"
+                >
+                    RESTART
+                </button>
+
+                <button
+                    class="stop-action"
+                    onclick="requestContainerAction('stop')"
+                >
+                    STOP
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="logs-information">
+        <span id="selected-log-status">
+            Select a Docker container.
+        </span>
+
+        <button onclick="clearContainerLogs()">
+            CLEAR VIEW
+        </button>
+    </div>
+
+    <pre id="container-log-output">Awaiting container selection...</pre>
+</section>
+
+
+<footer>
+    JARVIS DEVOPS COMMAND CENTER • AUTHORISED OPERATIONS ONLY • VERSION 2.0
+</footer>
+
+<script>
+    const logElement = document.getElementById("system-log");
+
+    function addLog(message, level = "normal") {
+        const line = document.createElement("p");
+        line.className = level;
+        line.textContent = `> ${new Date().toLocaleTimeString()} — ${message}`;
+
+        logElement.appendChild(line);
+        logElement.scrollTop = logElement.scrollHeight;
+
+        while (logElement.children.length > 30) {
+            logElement.removeChild(logElement.firstChild);
+        }
+    }
+
+    function clearLog() {
+        logElement.innerHTML = "";
+        addLog("Operation log cleared");
+    }
+
+    function updateCore(message) {
+        document.getElementById("core-message").textContent = message;
+    }
+
+    function updateBar(id, value) {
+        const bar = document.getElementById(id);
+        const safeValue = Math.min(Number(value) || 0, 100);
+
+        bar.style.width = `${safeValue}%`;
+        bar.classList.toggle("warning", safeValue >= 70);
+        bar.classList.toggle("danger", safeValue >= 90);
+    }
+
+    async function loadSystem() {
+        try {
+            const response = await fetch("/api/system");
+
+            if (!response.ok) {
+                throw new Error(`System API returned ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            document.getElementById("hostname").textContent =
+                data.hostname.toUpperCase();
+
+            document.getElementById("cpu-value").textContent =
+                `${data.cpu_percent}%`;
+
+            document.getElementById("memory-value").textContent =
+                `${data.memory.percent}%`;
+
+            document.getElementById("disk-value").textContent =
+                `${data.disk.percent}%`;
+
+            document.getElementById("memory-detail").textContent =
+                `${data.memory.used_gb} GB / ${data.memory.total_gb} GB`;
+
+            document.getElementById("disk-detail").textContent =
+                `${data.disk.used_gb} GB / ${data.disk.total_gb} GB`;
+
+            updateBar("cpu-bar", data.cpu_percent);
+            updateBar("memory-bar", data.memory.percent);
+            updateBar("disk-bar", data.disk.percent);
+
+            document.getElementById("global-status").textContent =
+                "SYSTEM ONLINE";
+
+            updateCore("System telemetry synchronised");
+
+            return data;
+        } catch (error) {
+            document.getElementById("global-status").textContent =
+                "SYSTEM ERROR";
+
+            updateCore("Watcher agent connection failed");
+            addLog(error.message, "error");
+            throw error;
+        }
+    }
+
+    async function loadContainers() {
+        const list = document.getElementById("container-list");
+
+        try {
+            const response = await fetch("/api/containers");
+
+            if (!response.ok) {
+                throw new Error(`Docker API returned ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            document.getElementById("container-count").textContent =
+                data.count;
+
+            document.getElementById("docker-agent-state").textContent =
+                data.docker === "connected" ? "ONLINE" : "OFFLINE";
+
+            list.innerHTML = "";
+
+            if (!data.containers.length) {
+                const message = document.createElement("p");
+                message.className = "empty";
+                message.textContent =
+                    "Docker connected. No containers detected.";
+
+                list.appendChild(message);
+                return data;
+            }
+
+            data.containers.forEach(container => {
+                const item = document.createElement("article");
+                item.className = "container-item";
+
+                const information = document.createElement("div");
+
+                const name = document.createElement("h4");
+                name.textContent = container.name;
+
+                const image = document.createElement("p");
+                image.textContent = container.image;
+
+                information.appendChild(name);
+                information.appendChild(image);
+
+                const statusArea = document.createElement("div");
+                statusArea.className = "container-status-area";
+
+                const status = document.createElement("span");
+                status.className =
+                    `container-status ${container.status}`;
+
+                status.textContent = container.status.toUpperCase();
+
+                const identifier = document.createElement("small");
+                identifier.textContent = container.id;
+
+                statusArea.appendChild(status);
+                statusArea.appendChild(identifier);
+
+                item.appendChild(information);
+                item.appendChild(statusArea);
+
+                list.appendChild(item);
+            });
+
+            return data;
+        } catch (error) {
+            document.getElementById("docker-agent-state").textContent =
+                "OFFLINE";
+
+            list.innerHTML =
+                '<p class="empty error">Docker connection failed.</p>';
+
+            addLog(error.message, "error");
+            throw error;
+        }
+    }
+
+    async function loadScope() {
+        try {
+            const response = await fetch("/api/security/scope");
+
+            if (!response.ok) {
+                throw new Error(`Scope API returned ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            document.getElementById("program-name").textContent =
+                data.program_name || "NOT CONFIGURED";
+
+            document.getElementById("scope-count").textContent =
+                data.allowed_targets.length;
+
+            return data;
+        } catch (error) {
+            document.getElementById("program-name").textContent =
+                "SCOPE ERROR";
+
+            addLog(error.message, "error");
+            throw error;
+        }
+    }
+
+    async function executeSystemCommand() {
+        updateCore("Watcher agent scanning system...");
+        addLog("WATCHER agent requested system telemetry");
+
+        try {
+            const data = await loadSystem();
+
+            addLog(
+                `CPU ${data.cpu_percent}% | RAM ${data.memory.percent}% | DISK ${data.disk.percent}%`,
+                "success"
+            );
+        } catch (_) {}
+    }
+
+    async function executeDockerCommand() {
+        updateCore("Docker agent inspecting containers...");
+        addLog("DOCKER agent scanning container engine");
+
+        try {
+            const data = await loadContainers();
+
+            addLog(
+                `Docker ${data.docker}; ${data.count} container(s) detected`,
+                "success"
+            );
+        } catch (_) {}
+    }
+
+    async function executeScopeCommand() {
+        updateCore("Sentinel agent validating scope...");
+        addLog("SENTINEL agent loading authorised scope");
+
+        try {
+            const data = await loadScope();
+
+            addLog(
+                `${data.allowed_targets.length} authorised scope entrie(s) loaded`,
+                "success"
+            );
+
+            data.allowed_targets.forEach(target => {
+                addLog(`AUTHORISED: ${target}`, "success");
+            });
+        } catch (_) {}
+    }
+
+    async function runPassiveRecon() {
+        const input = document.getElementById("security-target");
+        const resultBox = document.getElementById("recon-summary");
+        const target = input.value.trim();
+
+        if (!target) {
+            resultBox.textContent = "Enter an authorised target first.";
+            addLog("Passive recon blocked: target missing", "warning");
+            return;
+        }
+
+        resultBox.textContent = "Scout agent scanning target...";
+        updateCore("Scout and Sentinel agents working...");
+        addLog(`SCOUT requested passive recon for ${target}`);
+
+        try {
+            const response = await fetch(
+                "/api/security/passive-recon",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        url: target
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const detail =
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : JSON.stringify(data.detail);
+
+                throw new Error(detail);
+            }
+
+            const statusCode =
+                data.http.status_code === null
+                    ? "NO RESPONSE"
+                    : data.http.status_code;
+
+            const observations = data.observations || [];
+
+            resultBox.innerHTML = "";
+
+            const status = document.createElement("strong");
+            status.textContent =
+                `HTTP ${statusCode} • SCOPE ${data.target.scope_status.toUpperCase()}`;
+
+            const hostname = document.createElement("p");
+            hostname.textContent = data.target.hostname;
+
+            const observationCount = document.createElement("p");
+            observationCount.textContent =
+                `${observations.length} preliminary observation(s)`;
+
+            resultBox.appendChild(status);
+            resultBox.appendChild(hostname);
+            resultBox.appendChild(observationCount);
+
+            addLog(
+                `Recon completed: ${data.target.hostname} returned HTTP ${statusCode}`,
+                "success"
+            );
+
+            observations.forEach(observation => {
+                addLog(`OBSERVATION: ${observation}`, "warning");
+            });
+
+            updateCore("Authorised passive recon completed");
+        } catch (error) {
+            resultBox.textContent = `Blocked or failed: ${error.message}`;
+            addLog(`RECON ERROR: ${error.message}`, "error");
+            updateCore("Sentinel blocked or rejected operation");
+        }
+    }
+
+    async function runCommand() {
+        const input = document.getElementById("command-input");
+        const command = input.value.trim().toLowerCase();
+
+        if (!command) {
+            return;
+        }
+
+        addLog(`OPERATOR: ${command}`);
+        input.value = "";
+
+        if (
+            command === "system" ||
+            command === "system scan" ||
+            command === "check system"
+        ) {
+            await executeSystemCommand();
+            return;
+        }
+
+        if (
+            command === "docker" ||
+            command === "docker scan" ||
+            command === "check containers"
+        ) {
+            await executeDockerCommand();
+            return;
+        }
+
+        if (
+            command === "scope" ||
+            command === "view scope" ||
+            command === "check scope"
+        ) {
+            await executeScopeCommand();
+            return;
+        }
+
+        if (command === "help") {
+            addLog(
+                "Available commands: system, docker, scope, help",
+                "success"
+            );
+
+            updateCore("Command catalogue displayed");
+            return;
+        }
+
+        addLog(
+            "Unknown command. Type help for supported commands.",
+            "warning"
+        );
+
+        updateCore("Command not recognised");
+    }
+
+    function updateClock() {
+        document.getElementById("clock").textContent =
+            new Date().toLocaleTimeString();
+    }
+
+    document
+        .getElementById("command-input")
+        .addEventListener("keydown", event => {
+            if (event.key === "Enter") {
+                runCommand();
+            }
+        });
+
+
+    let containerLogTimer = null;
+
+    async function loadLogContainers() {
+        const select =
+            document.getElementById("log-container-select");
+
+        const previousSelection = select.value;
+
+        try {
+            const response = await fetch("/api/containers");
+
+            if (!response.ok) {
+                throw new Error(
+                    `Container API returned ${response.status}`
+                );
+            }
+
+            const data = await response.json();
+
+            select.innerHTML = "";
+
+            if (!data.containers.length) {
+                const option = document.createElement("option");
+                option.value = "";
+                option.textContent = "No containers detected";
+                select.appendChild(option);
+                return;
+            }
+
+            data.containers.forEach(container => {
+                const option = document.createElement("option");
+
+                option.value = container.name;
+                option.textContent =
+                    `${container.name} (${container.status})`;
+
+                select.appendChild(option);
+            });
+
+            const previousStillExists =
+                data.containers.some(
+                    container =>
+                        container.name === previousSelection
+                );
+
+            if (previousStillExists) {
+                select.value = previousSelection;
+            }
+
+            addLog(
+                `${data.containers.length} container(s) available for log inspection`
+            );
+        } catch (error) {
+            select.innerHTML = "";
+
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "Docker unavailable";
+
+            select.appendChild(option);
+
+            addLog(
+                `LOG AGENT ERROR: ${error.message}`,
+                "error"
+            );
+        }
+    }
+
+
+    async function requestContainerAction(action) {
+        const select =
+            document.getElementById("log-container-select");
+
+        const containerName = select.value.trim();
+
+        if (!containerName) {
+            addLog(
+                "Container action blocked: no container selected",
+                "warning"
+            );
+
+            updateCore("Select a container first");
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Confirm ${action.toUpperCase()} for container:\n\n` +
+            `${containerName}`
+        );
+
+        if (!confirmed) {
+            addLog(
+                `${action.toUpperCase()} cancelled for ${containerName}`
+            );
+
+            return;
+        }
+
+        updateCore(
+            `Docker agent executing ${action} on ${containerName}`
+        );
+
+        addLog(
+            `DOCKER CONTROL: ${action.toUpperCase()} requested ` +
+            `for ${containerName}`,
+            "warning"
+        );
+
+        try {
+            const response = await fetch(
+                `/api/containers/${encodeURIComponent(containerName)}` +
+                `/action`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        action: action
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const detail =
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : JSON.stringify(data.detail);
+
+                throw new Error(detail);
+            }
+
+            addLog(
+                `${data.container}: ${data.previous_status} → ` +
+                `${data.current_status}`,
+                "success"
+            );
+
+            addLog(
+                data.message,
+                "success"
+            );
+
+            updateCore(
+                `${data.container} ${data.action} completed`
+            );
+
+            await loadContainers();
+            await loadLogContainers();
+
+            const refreshedSelect =
+                document.getElementById("log-container-select");
+
+            refreshedSelect.value = data.container;
+
+            if (data.current_status === "running") {
+                setTimeout(
+                    loadSelectedContainerLogs,
+                    1000
+                );
+            } else {
+                document.getElementById(
+                    "selected-log-status"
+                ).textContent =
+                    `${data.container} • ${data.current_status.toUpperCase()}`;
+            }
+        } catch (error) {
+            addLog(
+                `DOCKER CONTROL ERROR: ${error.message}`,
+                "error"
+            );
+
+            updateCore(
+                "Docker control operation failed"
+            );
+
+            alert(
+                `Docker action failed:\n${error.message}`
+            );
+        }
+    }
+
+    async function loadSelectedContainerLogs() {
+        const select =
+            document.getElementById("log-container-select");
+
+        const output =
+            document.getElementById("container-log-output");
+
+        const status =
+            document.getElementById("selected-log-status");
+
+        const tailInput =
+            document.getElementById("log-tail");
+
+        const containerName = select.value.trim();
+
+        let tail = Number.parseInt(
+            tailInput.value,
+            10
+        );
+
+        if (!containerName) {
+            output.textContent =
+                "Select a Docker container first.";
+
+            status.textContent =
+                "No container selected.";
+
+            addLog(
+                "Docker log request blocked: no container selected",
+                "warning"
+            );
+
+            return;
+        }
+
+        if (
+            Number.isNaN(tail) ||
+            tail < 1 ||
+            tail > 500
+        ) {
+            tail = 50;
+            tailInput.value = "50";
+        }
+
+        output.textContent =
+            `Reading latest ${tail} lines from ${containerName}...`;
+
+        status.textContent =
+            `Connecting to ${containerName}...`;
+
+        updateCore(
+            `Docker log agent inspecting ${containerName}`
+        );
+
+        try {
+            const url =
+                `/api/containers/${encodeURIComponent(containerName)}` +
+                `/logs?tail=${tail}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok) {
+                const detail =
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : JSON.stringify(data.detail);
+
+                throw new Error(detail);
+            }
+
+            output.textContent =
+                data.logs || "[Container returned no logs]";
+
+            status.textContent =
+                `${data.container} • ${data.status.toUpperCase()} • ` +
+                `LATEST ${data.tail} LINES`;
+
+            addLog(
+                `Logs loaded from ${data.container}`,
+                "success"
+            );
+
+            updateCore(
+                `Container logs received from ${data.container}`
+            );
+        } catch (error) {
+            output.textContent =
+                `LOG ERROR\n${error.message}`;
+
+            status.textContent =
+                "Log retrieval failed.";
+
+            addLog(
+                `LOG AGENT ERROR: ${error.message}`,
+                "error"
+            );
+
+            updateCore(
+                "Docker log agent encountered an error"
+            );
+        }
+    }
+
+    function clearContainerLogs() {
+        document.getElementById(
+            "container-log-output"
+        ).textContent = "Log viewer cleared.";
+
+        document.getElementById(
+            "selected-log-status"
+        ).textContent = "Awaiting log request.";
+
+        addLog("Container log viewer cleared");
+    }
+
+    function configureContainerLogAutoRefresh() {
+        const checkbox =
+            document.getElementById("log-auto-refresh");
+
+        checkbox.addEventListener("change", () => {
+            if (containerLogTimer !== null) {
+                clearInterval(containerLogTimer);
+                containerLogTimer = null;
+            }
+
+            if (checkbox.checked) {
+                loadSelectedContainerLogs();
+
+                containerLogTimer = setInterval(
+                    loadSelectedContainerLogs,
+                    5000
+                );
+
+                addLog(
+                    "Container log auto-refresh enabled",
+                    "success"
+                );
+            } else {
+                addLog(
+                    "Container log auto-refresh disabled"
+                );
+            }
+        });
+    }
+
+    async function initialiseJarvis() {
+        addLog("Initialising WATCHER agent");
+        addLog("Initialising DOCKER agent");
+        addLog("Initialising SENTINEL scope guard");
+        addLog("Initialising SCOUT passive recon agent");
+
+        await Promise.allSettled([
+            loadSystem(),
+            loadContainers(),
+            loadScope()
+        ]);
+
+        updateCore("All available agents operational");
+        addLog("JARVIS command centre ready", "success");
+    }
+
+    initialiseJarvis();
+    loadLogContainers();
+    configureContainerLogAutoRefresh();
+    updateClock();
+
+    setInterval(updateClock, 1000);
+    setInterval(loadSystem, 5000);
+    setInterval(loadContainers, 15000);
+    setInterval(loadLogContainers, 15000);
+</script>
+</body>
+</html>

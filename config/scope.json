@@ -1,0 +1,9 @@
+{
+  "program_name": "Bluesky Travel Vietnam Security Research",
+  "allowed_targets": [
+    "app.blueskytravelvietnam.com"
+  ],
+  "excluded_targets": [],
+  "user_agent": "JARVIS-Authorized-Security-Research/1.0",
+  "max_requests_per_run": 5
+}
