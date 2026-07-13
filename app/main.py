@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.recon import router as recon_router
+from app.git_agent import router as git_router
 
 app = FastAPI(
     title="JARVIS DevOps Command Center",
@@ -18,6 +19,7 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 app.include_router(recon_router)
+app.include_router(git_router)
 
 
 @app.get("/")

@@ -41,3 +41,13 @@ def test_unknown_page_returns_404():
     response = client.get("/this-page-does-not-exist")
 
     assert response.status_code == 404
+
+
+def test_git_agent_status():
+    response = client.get("/api/git/status")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "available" in data
