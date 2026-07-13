@@ -242,6 +242,95 @@
 </section>
 
 
+
+<section class="forge-workspace">
+    <div class="panel-heading horizontal">
+        <div>
+            <span>CI/CD PIPELINE</span>
+            <small>FORGE AGENT</small>
+        </div>
+
+        <button onclick="loadForgeStatus(true)">
+            REFRESH PIPELINE
+        </button>
+    </div>
+
+    <div class="forge-summary-grid">
+        <article class="forge-summary-card">
+            <span>LATEST STATUS</span>
+            <strong id="forge-latest-state">
+                CONNECTING
+            </strong>
+        </article>
+
+        <article class="forge-summary-card">
+            <span>BRANCH</span>
+            <strong id="forge-branch">
+                --
+            </strong>
+        </article>
+
+        <article class="forge-summary-card">
+            <span>RUN NUMBER</span>
+            <strong id="forge-run-number">
+                --
+            </strong>
+        </article>
+
+        <article class="forge-summary-card">
+            <span>DURATION</span>
+            <strong id="forge-duration">
+                --
+            </strong>
+        </article>
+    </div>
+
+    <div class="forge-run-information">
+        <div>
+            <span>PIPELINE TITLE</span>
+            <strong id="forge-title">
+                Loading GitHub Actions...
+            </strong>
+        </div>
+
+        <div>
+            <span>COMMIT</span>
+            <strong id="forge-commit">
+                --
+            </strong>
+        </div>
+
+        <div>
+            <span>TRIGGER</span>
+            <strong id="forge-event">
+                --
+            </strong>
+        </div>
+
+        <a
+            id="forge-run-link"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            OPEN WORKFLOW RUN
+        </a>
+    </div>
+
+    <div>
+        <p class="forge-jobs-heading">
+            PIPELINE JOBS
+        </p>
+
+        <div id="forge-jobs" class="forge-jobs">
+            <p class="empty">
+                Waiting for FORGE agent...
+            </p>
+        </div>
+    </div>
+</section>
+
+
 <section class="logs-workspace">
     <div class="panel-heading horizontal">
         <div>
@@ -1029,6 +1118,267 @@
         });
     }
 
+
+    function formatForgeDuration(seconds) {
+        if (
+            seconds === null ||
+            seconds === undefined
+        ) {
+            return "--";
+        }
+
+        if (seconds < 60) {
+            return `${seconds}s`;
+        }
+
+        const minutes = Math.floor(
+            seconds / 60
+        );
+
+        const remainingSeconds =
+            seconds % 60;
+
+        return `${minutes}m ${remainingSeconds}s`;
+    }
+
+    function updateForgeAgentCard(state) {
+        const cards = Array.from(
+            document.querySelectorAll(
+                ".agent-card"
+            )
+        );
+
+        const forgeCard = cards.find(
+            card =>
+                card.querySelector("h3")
+                    ?.textContent
+                    .trim() === "FORGE"
+        );
+
+        if (!forgeCard) {
+            return;
+        }
+
+        const stateElement =
+            forgeCard.querySelector(
+                ".agent-state"
+            );
+
+        forgeCard.classList.remove("planned");
+        forgeCard.classList.add("active");
+
+        if (stateElement) {
+            stateElement.textContent = state;
+        }
+    }
+
+    async function loadForgeStatus(
+        forceRefresh = false
+    ) {
+        const jobsContainer =
+            document.getElementById(
+                "forge-jobs"
+            );
+
+        try {
+            const endpoint = forceRefresh
+                ? "/api/forge/status?force_refresh=true"
+                : "/api/forge/status";
+
+            const response = await fetch(endpoint);
+            const data = await response.json();
+
+            if (!response.ok) {
+                const detail =
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : JSON.stringify(
+                            data.detail
+                        );
+
+                throw new Error(detail);
+            }
+
+            const latest = data.latest_run;
+
+            if (!latest) {
+                document.getElementById(
+                    "forge-latest-state"
+                ).textContent = "NO RUNS";
+
+                jobsContainer.innerHTML =
+                    '<p class="empty">No workflow runs found.</p>';
+
+                updateForgeAgentCard("READY");
+                return;
+            }
+
+            const state =
+                latest.conclusion ||
+                latest.status ||
+                "unknown";
+
+            const stateElement =
+                document.getElementById(
+                    "forge-latest-state"
+                );
+
+            stateElement.textContent =
+                state.toUpperCase();
+
+            stateElement.className =
+                `forge-state-${state}`;
+
+            document.getElementById(
+                "forge-branch"
+            ).textContent =
+                latest.branch || "--";
+
+            document.getElementById(
+                "forge-run-number"
+            ).textContent =
+                `#${latest.run_number}`;
+
+            document.getElementById(
+                "forge-duration"
+            ).textContent =
+                formatForgeDuration(
+                    latest.duration_seconds
+                );
+
+            document.getElementById(
+                "forge-title"
+            ).textContent =
+                latest.title ||
+                latest.name ||
+                "GitHub Actions Run";
+
+            document.getElementById(
+                "forge-commit"
+            ).textContent =
+                latest.short_sha || "--";
+
+            document.getElementById(
+                "forge-event"
+            ).textContent =
+                (
+                    latest.event || "--"
+                ).toUpperCase();
+
+            const runLink =
+                document.getElementById(
+                    "forge-run-link"
+                );
+
+            runLink.href =
+                latest.html_url || "#";
+
+            jobsContainer.innerHTML = "";
+
+            if (!data.jobs.length) {
+                const empty =
+                    document.createElement("p");
+
+                empty.className = "empty";
+                empty.textContent =
+                    data.jobs_error ||
+                    "No job information returned.";
+
+                jobsContainer.appendChild(empty);
+            }
+
+            data.jobs.forEach(job => {
+                const item =
+                    document.createElement(
+                        "article"
+                    );
+
+                item.className =
+                    "forge-job-item";
+
+                const information =
+                    document.createElement(
+                        "div"
+                    );
+
+                const name =
+                    document.createElement(
+                        "strong"
+                    );
+
+                name.textContent =
+                    job.name || "Unnamed Job";
+
+                const duration =
+                    document.createElement(
+                        "p"
+                    );
+
+                duration.textContent =
+                    formatForgeDuration(
+                        job.duration_seconds
+                    );
+
+                information.appendChild(name);
+                information.appendChild(
+                    duration
+                );
+
+                const status =
+                    document.createElement(
+                        "span"
+                    );
+
+                const jobState =
+                    job.conclusion ||
+                    job.status ||
+                    "unknown";
+
+                status.className =
+                    `forge-job-state ${jobState}`;
+
+                status.textContent =
+                    jobState.toUpperCase();
+
+                item.appendChild(information);
+                item.appendChild(status);
+                jobsContainer.appendChild(item);
+            });
+
+            updateForgeAgentCard(
+                state === "success"
+                    ? "ONLINE"
+                    : state.toUpperCase()
+            );
+
+            addLog(
+                `FORGE: Pipeline #${latest.run_number} ` +
+                `${state.toUpperCase()}`,
+                state === "success"
+                    ? "success"
+                    : "warning"
+            );
+
+            updateCore(
+                `FORGE pipeline ${state}`
+            );
+        } catch (error) {
+            document.getElementById(
+                "forge-latest-state"
+            ).textContent = "ERROR";
+
+            jobsContainer.innerHTML =
+                `<p class="empty error">${error.message}</p>`;
+
+            updateForgeAgentCard("OFFLINE");
+
+            addLog(
+                `FORGE ERROR: ${error.message}`,
+                "error"
+            );
+        }
+    }
+
     async function initialiseJarvis() {
         addLog("Initialising WATCHER agent");
         addLog("Initialising DOCKER agent");
@@ -1046,6 +1396,7 @@
     }
 
     initialiseJarvis();
+    loadForgeStatus();
     loadLogContainers();
     configureContainerLogAutoRefresh();
     updateClock();
@@ -1054,6 +1405,10 @@
     setInterval(loadSystem, 5000);
     setInterval(loadContainers, 15000);
     setInterval(loadLogContainers, 15000);
+    setInterval(
+        loadForgeStatus,
+        180000
+    );
 </script>
 </body>
 </html>

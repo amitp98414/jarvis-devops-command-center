@@ -45,6 +45,8 @@ jobs:
         run: |
           python -m py_compile app/main.py
           python -m py_compile app/recon.py
+          python -m py_compile app/git_agent.py
+          python -m py_compile app/forge_agent.py
 
       - name: Run automated tests
         run: |

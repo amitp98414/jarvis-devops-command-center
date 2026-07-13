@@ -51,3 +51,17 @@ def test_git_agent_status():
     data = response.json()
 
     assert "available" in data
+
+
+def test_forge_configuration():
+    from app.forge_agent import load_forge_config
+
+    config = load_forge_config()
+
+    assert config["owner"] == "amitp98414"
+    assert (
+        config["repository"]
+        == "jarvis-devops-command-center"
+    )
+    assert config["workflow_file"] == "ci.yml"
+    assert config["branch"] == "main"

@@ -1,0 +1,7 @@
+{
+  "owner": "amitp98414",
+  "repository": "jarvis-devops-command-center",
+  "workflow_file": "ci.yml",
+  "branch": "main",
+  "cache_seconds": 60
+}
