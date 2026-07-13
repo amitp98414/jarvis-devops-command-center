@@ -65,3 +65,74 @@ def test_forge_configuration():
     )
     assert config["workflow_file"] == "ci.yml"
     assert config["branch"] == "main"
+
+
+def test_memory_agent_health():
+    response = client.get(
+        "/api/memory/health"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["available"] is True
+    assert data["status"] == "ready"
+
+
+def test_audit_event_creation():
+    response = client.post(
+        "/api/memory/audit",
+        json={
+            "agent": "TEST",
+            "action": "pipeline_test",
+            "target": "jarvis",
+            "status": "success",
+            "details": {
+                "source": "pytest"
+            }
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["id"] > 0
+
+    history = client.get(
+        "/api/memory/audit?limit=10"
+    )
+
+    assert history.status_code == 200
+    assert history.json()["count"] >= 1
+
+
+def test_approval_lifecycle():
+    request = client.post(
+        "/api/memory/approvals",
+        json={
+            "action": "restart_container",
+            "target": "test-container",
+            "reason": "Automated approval test",
+            "requested_by": "pytest"
+        },
+    )
+
+    assert request.status_code == 201
+
+    approval_id = request.json()["id"]
+
+    decision = client.post(
+        (
+            f"/api/memory/approvals/"
+            f"{approval_id}/decision"
+        ),
+        json={
+            "decision": "approved",
+            "note": "Approved during test"
+        },
+    )
+
+    assert decision.status_code == 200
+    assert (
+        decision.json()["status"]
+        == "approved"
+    )
