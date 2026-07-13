@@ -26,3 +26,7 @@ Thumbs.db
 # Backup files
 *backup*
 *.bak
+
+# Local development copies
+*before*
+*backup*
