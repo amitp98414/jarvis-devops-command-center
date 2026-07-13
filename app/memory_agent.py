@@ -466,3 +466,266 @@ def decide_approval_request(
             f"{decision.decision}."
         ),
     }
+
+
+def ensure_approval_execution_table() -> None:
+    """
+    Store a single execution result for every approved operation.
+    UNIQUE approval_id prevents replaying the same approval.
+    """
+
+    with get_connection() as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS approval_executions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                approval_id INTEGER NOT NULL UNIQUE,
+                executed_at TEXT NOT NULL,
+                executor TEXT NOT NULL,
+                result_status TEXT NOT NULL,
+                result_details TEXT
+            )
+            """
+        )
+
+
+def create_approval_record(
+    *,
+    action: str,
+    target: str,
+    reason: str,
+    requested_by: str = "operator",
+) -> int:
+    created_at = utc_now()
+
+    with get_connection() as connection:
+        cursor = connection.execute(
+            """
+            INSERT INTO approval_requests (
+                created_at,
+                action,
+                target,
+                reason,
+                requested_by,
+                status
+            )
+            VALUES (?, ?, ?, ?, ?, 'pending')
+            """,
+            (
+                created_at,
+                action,
+                target,
+                reason,
+                requested_by,
+            ),
+        )
+
+        approval_id = int(cursor.lastrowid)
+
+    record_audit_event(
+        agent="SENTINEL",
+        action="approval_requested",
+        target=target,
+        event_status="pending",
+        details={
+            "approval_id": approval_id,
+            "requested_action": action,
+            "reason": reason,
+            "requested_by": requested_by,
+        },
+    )
+
+    return approval_id
+
+
+def get_approval_record(
+    approval_id: int,
+) -> dict | None:
+    with get_connection() as connection:
+        row = connection.execute(
+            """
+            SELECT
+                id,
+                created_at,
+                action,
+                target,
+                reason,
+                requested_by,
+                status,
+                decided_at,
+                decision_note
+            FROM approval_requests
+            WHERE id = ?
+            """,
+            (approval_id,),
+        ).fetchone()
+
+    return dict(row) if row is not None else None
+
+
+def reserve_approval_execution(
+    *,
+    approval_id: int,
+    executor: str,
+) -> dict:
+    """
+    Atomically reserve an approved request for one execution.
+    A reused approval ID is rejected.
+    """
+
+    ensure_approval_execution_table()
+
+    with get_connection() as connection:
+        approval = connection.execute(
+            """
+            SELECT *
+            FROM approval_requests
+            WHERE id = ?
+            """,
+            (approval_id,),
+        ).fetchone()
+
+        if approval is None:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Approval request {approval_id} "
+                    "was not found."
+                ),
+            )
+
+        if approval["status"] != "approved":
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Docker action requires an approved "
+                    "approval request."
+                ),
+            )
+
+        try:
+            connection.execute(
+                """
+                INSERT INTO approval_executions (
+                    approval_id,
+                    executed_at,
+                    executor,
+                    result_status,
+                    result_details
+                )
+                VALUES (?, ?, ?, 'in_progress', NULL)
+                """,
+                (
+                    approval_id,
+                    utc_now(),
+                    executor,
+                ),
+            )
+        except sqlite3.IntegrityError as error:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "This approval has already been used "
+                    "or execution is already in progress."
+                ),
+            ) from error
+
+    return dict(approval)
+
+
+def finish_approval_execution(
+    *,
+    approval_id: int,
+    result_status: str,
+    details: dict[str, Any] | str | None,
+) -> None:
+    ensure_approval_execution_table()
+
+    serialised_details = serialise_details(details)
+
+    with get_connection() as connection:
+        connection.execute(
+            """
+            UPDATE approval_executions
+            SET
+                executed_at = ?,
+                result_status = ?,
+                result_details = ?
+            WHERE approval_id = ?
+            """,
+            (
+                utc_now(),
+                result_status,
+                serialised_details,
+                approval_id,
+            ),
+        )
+
+    approval = get_approval_record(approval_id)
+
+    record_audit_event(
+        agent="DOCKER",
+        action="approved_operation_executed",
+        target=(
+            approval["target"]
+            if approval
+            else None
+        ),
+        event_status=result_status,
+        details={
+            "approval_id": approval_id,
+            "execution_result": details,
+        },
+    )
+
+
+@router.get("/operations")
+def list_approved_operations(
+    limit: int = Query(
+        default=50,
+        ge=1,
+        le=200,
+    ),
+):
+    ensure_approval_execution_table()
+
+    with get_connection() as connection:
+        rows = connection.execute(
+            """
+            SELECT
+                approvals.id,
+                approvals.created_at,
+                approvals.action,
+                approvals.target,
+                approvals.reason,
+                approvals.requested_by,
+                approvals.status,
+                approvals.decided_at,
+                approvals.decision_note,
+                executions.executed_at,
+                executions.executor,
+                executions.result_status
+                    AS execution_status,
+                executions.result_details
+            FROM approval_requests AS approvals
+            LEFT JOIN approval_executions AS executions
+                ON executions.approval_id = approvals.id
+            ORDER BY approvals.id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+
+    operations = []
+
+    for row in rows:
+        item = dict(row)
+        item["result_details"] = deserialise_details(
+            item.get("result_details")
+        )
+        operations.append(item)
+
+    return {
+        "count": len(operations),
+        "operations": operations,
+    }

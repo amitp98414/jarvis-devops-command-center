@@ -136,3 +136,38 @@ def test_approval_lifecycle():
         decision.json()["status"]
         == "approved"
     )
+
+
+def test_docker_restart_requires_approval():
+    response = client.post(
+        "/api/containers/demo-container/action",
+        json={
+            "action": "restart"
+        },
+    )
+
+    assert response.status_code == 403
+    assert "approval" in response.json()["detail"].lower()
+
+
+def test_container_action_request_creates_approval():
+    response = client.post(
+        (
+            "/api/containers/"
+            "demo-container/action-request"
+        ),
+        json={
+            "action": "restart",
+            "reason": (
+                "Automated SENTINEL approval test"
+            )
+        },
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+
+    assert data["approval_id"] > 0
+    assert data["status"] == "pending"
+    assert data["action"] == "restart"
